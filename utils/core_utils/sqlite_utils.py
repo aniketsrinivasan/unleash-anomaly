@@ -1,0 +1,51 @@
+import sqlite3
+import os
+import pandas as pd
+
+
+def get_sqlite_connection(db_path: str, verbose=True) -> sqlite3.Connection:
+    """
+    Connects to a SQLite3 database and returns an sqlite3.Connection object.
+
+    :param db_path:     path to sqlite3 database.
+    :param verbose:     prints debugging information.
+    :return:            sqlite3.Connection object.
+    """
+    if verbose:
+        print(f"Connection to SQLite3 database at {db_path}...")
+    if not os.path.exists(db_path):
+        raise FileNotFoundError(f"File {db_path} not found.")
+
+    # Connecting to the database:
+    connection = sqlite3.connect(db_path)
+
+    if verbose:
+        print(f"Connected to SQLite3 database at {db_path}", end="\n\n")
+    return connection
+
+
+def sqlite_to_pandas(connection: sqlite3.Connection, table_name: str,
+                     timestamp=None, verbose=True) -> pd.DataFrame:
+    """
+    Consumes a SQLite3 connection and returns a pandas DataFrame of the provided table name.
+
+    :param connection:  a connection to the SQLite3 database to use.
+    :param table_name:  name of the table to extract as a DataFrame.
+    :param timestamp:   timestamp to extract data for.
+    :param verbose:     prints debugging information.
+    :return:            a pd.DataFrame of the provided table name from the SQLite3 database connection.
+    """
+    if verbose:
+        print(f"Extracting pd.DataFrame from provided SQLite3 connection for table {table_name}...")
+    # Get the pd.DataFrame:
+    if timestamp is None:
+        # Extract all timestamps:
+        dataframe = pd.read_sql_query(f"SELECT * from {table_name}", connection)
+    else:
+        # Get only information for the provided timestamp:
+        dataframe = pd.read_sql_query(f"SELECT * from {table_name} WHERE BucketTS={timestamp}", connection)
+    if verbose:
+        print(f"DataFrame extracted from SQLite3 connection.")
+        print(dataframe, end="\n\n")
+    return dataframe
+
