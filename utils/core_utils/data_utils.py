@@ -5,7 +5,7 @@ import pickle
 import os
 
 
-def create_skeleton_dict(keys_list=None,
+def _create_skeleton_dict(keys_list=None,
                          from_csv=False,
                          keys_csv_path=None, key_column_name=None,
                          init_value=0,
@@ -72,7 +72,7 @@ def create_skeleton_dict(keys_list=None,
     return skeleton_dict
 
 
-def load_skeleton_dict(load_path: str, verbose=True) -> dict:
+def _load_skeleton_dict(load_path: str, verbose=True) -> dict:
     """
     Loads a skeleton dictionary from a pickle file.
 
@@ -89,8 +89,8 @@ def load_skeleton_dict(load_path: str, verbose=True) -> dict:
     return skeleton_dict
 
 
-def populate_skeleton_dict(skeleton_dict: dict, populate_data, return_type: type,
-                           use_other: str=None, ignore_entries=None, verbose=True):
+def _populate_skeleton_dict(skeleton_dict: dict, populate_data, return_type: type,
+                            use_other: str = None, ignore_entries=None, verbose=True):
     """
     Populates a given skeleton dictionary with the information in populate_data.
     If populate_data is a pd.DataFrame, it must ONLY contain the Key and Value columns (in that order).
@@ -159,7 +159,7 @@ def populate_skeleton_dict(skeleton_dict: dict, populate_data, return_type: type
 class SkeletonDict:
     def __init__(self, load_path=None, verbose=True):
         """
-        Wrapper class for maintaining skeleton dictionaries. Used to load, create and populate
+        Wrapper class for maintaining skeleton dictionaries. Used to load, create, populate and reset
         skeleton dictionaries based on provided data.
 
         :param load_path:   path to load existing skeleton dictionary (optional, None).
@@ -171,54 +171,102 @@ class SkeletonDict:
         # Loading the skeleton dictionary if a path is provided:
         if self.load_path is None:
             print(f"Skeleton dictionary does not have a defined load_path. "
-                  f"Use the SkeletonDict.load_skeleton_dict() method to load the dictionary.")
+                  f"Use the SkeletonDict._load_skeleton_dict() method to load the dictionary.")
             self.raw_skeleton_dict = None
         else:
-            self.raw_skeleton_dict = load_skeleton_dict(self.load_path, verbose=verbose)
+            self.raw_skeleton_dict = _load_skeleton_dict(self.load_path, verbose=verbose)
 
         # Initializing populated skeleton dictionary to None:
         self.populated_skeleton_dict = None
 
-    def load(self, load_path, verbose=None):
+    def load(self, load_path, override=False, verbose=None):
+        """
+        Loads skeleton dictionary (as a dict) into SkeletonDict.raw_skeleton_dict.
+        
+        :param load_path:   path to load skeleton dictionary from.
+        :param override:    whether to override existing dictionary in SkeletonDict.raw_skeleton_dict.
+        :param verbose:     prints debugging information.
+        :return:            dictionary (skeleton dictionary).
+        """
         if verbose is None:
             verbose = self.verbose
-        if self.raw_skeleton_dict is not None:
+        if (self.raw_skeleton_dict is not None) and (override is False):
             print(f"SoftWarn: Loading skeleton dict from {load_path} but SkeletonDict.raw_skeleton_dict "
                   f"already exists. Overriding existing dictionary.")
-        self.raw_skeleton_dict = load_skeleton_dict(load_path, verbose=verbose)
+        self.raw_skeleton_dict = _load_skeleton_dict(load_path, verbose=verbose)
         return self.raw_skeleton_dict
 
     def create(self, keys_list=None, from_csv=False, keys_csv_path=None, key_column_name=None,
                init_value=0, save_path: str=None, verbose=None) -> dict:
+        """
+        Defines a new skeleton dictionary (saved in save_path) and stored in self.raw_skeleton_dict.
+
+        :param keys_list:       list defining all the keys present in this dictionary (in desired order).
+                                    (Optional, provide either keys_list or keys_csv_path).
+        :param from_csv:        whether keys are provided as a .csv file instead of as a list.
+        :param keys_csv_path:   .csv path with a column containing all the keys in this dictionary
+                                    (in desired order).
+                                    (Optional, provide either keys_list or keys_csv_path).
+                                    Set from_csv to True if using keys_csv_path, and provide key_column_name.
+        :param key_column_name: name of column in .csv file to read keys from.
+                                    (Optional, must be provided if keys_csv_path is used).
+        :param init_value:      initialization value for all keys in this skeleton dictionary (default 0).
+        :param save_path:       path to save the created skeleton dictionary.
+        :param verbose:         prints debugging information.
+        :return:                dictionary (skeleton dictionary).
+        """
         # Setting verbose value:
         if verbose is None:
             verbose = self.verbose
         # Loading the skeleton dictionary:
-        self.raw_skeleton_dict = create_skeleton_dict(keys_list=keys_list,
-                                                      from_csv=from_csv,
-                                                      keys_csv_path=keys_csv_path,
-                                                      key_column_name=key_column_name,
-                                                      init_value=init_value,
-                                                      save_path=save_path,
-                                                      verbose=verbose)
+        self.raw_skeleton_dict = _create_skeleton_dict(keys_list=keys_list,
+                                                       from_csv=from_csv,
+                                                       keys_csv_path=keys_csv_path,
+                                                       key_column_name=key_column_name,
+                                                       init_value=init_value,
+                                                       save_path=save_path,
+                                                       verbose=verbose)
         return self.raw_skeleton_dict
 
-    def populate(self, populate_data, return_type: type, use_other: str=None, ignore_entries=None,
+    def populate(self, populate_data, return_type: type, use_other: str = None, ignore_entries=None,
                  verbose=None) -> dict:
+        """
+        Consumes data used to populate the skeleton dictionary found in SkeletonDict.raw_skeleton_dict.
+        Requires that a dictionary is loaded into SkeletonDict.raw_skeleton_dict before usage (use
+        SkeletonDict.load() or SkeletonDict.create() if raw_skeleton_dict is not found).
+
+        :param populate_data:   data to populate the skeleton dictionary with
+                                    (either as a pd.DataFrame or a dict).
+        :param return_type:     return type for the returned data (either dict, pd.DataFrame or np.ndarray).
+        :param use_other:       name of "Other" entry to use (all keys not in the skeleton dictionary
+                                    go in this entry).
+        :param ignore_entries:  keys to ignore when populating the skeleton dictionary, as a tuple or list.
+        :param verbose:         prints debugging information.
+        :return:                dictionary (populated skeleton dictionary)
+        """
+        verbose = verbose if (verbose is not None) else self.verbose
         if self.populated_skeleton_dict is not None:
-            print(f"SoftWarn: Populated skeleton dictionary in SkeletonDict.populated_skeleton_dict is "
-                  f"not none. Overriding the existing dictionary.")
-        # Setting verbose information:
-        if verbose is None:
-            verbose = self.verbose
+            if verbose:
+                print(f"SoftWarn: Populated skeleton dictionary in SkeletonDict.populated_skeleton_dict is "
+                      f"not none. Overriding the existing dictionary.")
         # Loading data into skeleton dict and storing information:
-        self.populated_skeleton_dict = populate_skeleton_dict(skeleton_dict=self.raw_skeleton_dict,
-                                                              populate_data=populate_data,
-                                                              return_type=return_type,
-                                                              use_other=use_other,
-                                                              ignore_entries=ignore_entries,
-                                                              verbose=verbose)
+        self.populated_skeleton_dict = _populate_skeleton_dict(skeleton_dict=self.raw_skeleton_dict,
+                                                               populate_data=populate_data,
+                                                               return_type=return_type,
+                                                               use_other=use_other,
+                                                               ignore_entries=ignore_entries,
+                                                               verbose=verbose)
         return self.populated_skeleton_dict
+
+    def reset(self):
+        """
+        Reloads the skeleton dictionary in self.raw_skeleton_dict from the stored path in
+        SkeletonDict.load_path. Overrides any existing skeleton dictionary automatically.
+
+        :return:    None.
+        """
+        self.load(load_path=self.load_path, override=True)
+        return
 
 
 
