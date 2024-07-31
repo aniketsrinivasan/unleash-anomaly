@@ -8,13 +8,16 @@ class Encoder(nn.Sequential):
     __in_channels = 2
     __z_channels = 4
 
-    def __init__(self):
+    def __init__(self, in_channels: int = None, z_channels: int = None):
+        # Defining channels:
+        self.in_channels = in_channels if (in_channels is not None) else self.__in_channels
+        self.z_channels = z_channels if (z_channels is not None) else self.__z_channels
         # Creating parent Sequential model to reverse Encoder process:
         #   shape of encoded (output) image: (batch_size, 4, height//4, width//4)
         super().__init__(
             # Convolutional layer:
             #   (batch_size, in_channels, height, width) => (batch_size, 8, height, width)
-            nn.Conv2d(in_channels=self.__in_channels, out_channels=8, kernel_size=3, padding=1),
+            nn.Conv2d(in_channels=self.in_channels, out_channels=8, kernel_size=3, padding=1),
 
             # Residual block:
             #   a combination of convolutions and normalization
@@ -61,11 +64,11 @@ class Encoder(nn.Sequential):
             # Convolution layer:
             #   this is the "bottleneck" of the encoder
             #   (batch_size, 16, height//4, width//4) => (batch_size, 4, height//4, width//4)
-            nn.Conv2d(in_channels=16, out_channels=self.__z_channels, kernel_size=3, padding=1),
+            nn.Conv2d(in_channels=16, out_channels=self.z_channels, kernel_size=3, padding=1),
 
             # Convolution layer:
             #   (batch_size, 4, height//4, width//4) => (batch_size, 4, height//4, width//4)
-            nn.Conv2d(in_channels=self.__z_channels, out_channels=self.__z_channels,
+            nn.Conv2d(in_channels=self.z_channels, out_channels=self.z_channels,
                       kernel_size=1, padding=0)
         )
 

@@ -8,12 +8,15 @@ class Decoder(nn.Sequential):
     __z_channels = 4
     __out_channels = 2
 
-    def __init__(self):
+    def __init__(self, z_channels: int = None, out_channels: int = None):
+        # Defining channels:
+        self.z_channels = z_channels if (z_channels is not None) else self.__z_channels
+        self.out_channels = out_channels if (out_channels is not None) else self.__out_channels
         # Creating parent Sequential model to reverse Encoder process:
         #   shape of encoded (input) image: (batch_size, 4, height//4, width//4)
         super().__init__(
             #   (batch_size, 4, height//4, width//4) => (batch_size, 4, height//4, width//4)
-            nn.Conv2d(in_channels=self.__z_channels, out_channels=self.__z_channels, kernel_size=1, padding=0),
+            nn.Conv2d(in_channels=self.z_channels, out_channels=self.z_channels, kernel_size=1, padding=0),
 
             #   (batch_size, 4, height//4, width//4) => (batch_size, 16, height//4, width//4)
             nn.Conv2d(in_channels=self.__z_channels, out_channels=16, kernel_size=3, padding=1),
@@ -54,7 +57,7 @@ class Decoder(nn.Sequential):
             nn.SiLU(),
 
             # Final convolution, changing to out_channels:
-            nn.Conv2d(in_channels=8, out_channels=self.__out_channels, kernel_size=3, padding=1)
+            nn.Conv2d(in_channels=8, out_channels=self.out_channels, kernel_size=3, padding=1)
         )
 
     # Forward method:
