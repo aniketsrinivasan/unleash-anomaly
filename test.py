@@ -9,7 +9,7 @@ import scipy.stats
 
 # Idea:
 #   take top 499 and create a group for "other"
-#   then run this through various algorithms. possibly variational_convolutional, multivar gaussian.
+#   then run this through various algorithms. possibly conv_vae, multivar gaussian.
 #   can create various "groups" e.g. top 19, top 99, top 499 etc. and see performance
 #   this top 499 should be taken from at least 2 weeks of past data.
 #   an algorithm to update the list of toppers and re-train or re-compute may be necessary if this

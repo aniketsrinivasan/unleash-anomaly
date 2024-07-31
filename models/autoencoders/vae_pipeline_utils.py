@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from variational_convolutional import ConvVAE
+from conv_vae import ConvVAE
 from utils import DatasetTensor
 
 
