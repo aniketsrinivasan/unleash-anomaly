@@ -1,7 +1,8 @@
 import numpy as np
 import torch
 from torch.utils.data import Dataset
-from .core_utils import (get_sqlite_connection, sqlite_to_pandas, SkeletonDict)
+from .core_utils import (get_sqlite_connection, sqlite_to_pandas, SkeletonDict,
+                         log_info)
 
 
 def get_skeleton_dict(skeleton_dict: SkeletonDict = None, skeleton_dict_path: str = None,
@@ -37,6 +38,7 @@ def get_skeleton_dict(skeleton_dict: SkeletonDict = None, skeleton_dict_path: st
 
 
 class DataTensor:
+    @log_info()
     def __init__(self, sqlite_path: str,
                  skeleton_dict: SkeletonDict = None, skeleton_dict_path: str = None,
                  table_name: str = None, key_column: str = None, value_column: str = None,
@@ -76,6 +78,7 @@ class DataTensor:
         # Defining torch.Tensor that will store the information of this DataTensor:
         self.tensor = None
 
+    @log_info()
     def retrieve_dataframe(self, table_name: str = None, key_column: str = None, value_column: str = None,
                            update_self=True, timestamp=None, verbose=None):
         """
@@ -104,6 +107,7 @@ class DataTensor:
             print(f"DataFrame extracted from SQLite3 connection.")
         return dataframe
 
+    @log_info()
     def get_array(self, use_other: str = None, ignore_entries: str = None, verbose=None):
         """
         Produces an np.ndarray from the DataFrame in DataTensor.dataframe.
@@ -138,6 +142,7 @@ class DataTensor:
                                                       verbose=verbose)
         return populated_array
 
+    @log_info()
     def get_tensor(self, this_timestep: int, interval_size: int, num_intervals: int,
                    table_name: str = None, key_column: str = None, value_column: str = None,
                    use_other: str = None, ignore_entries = None, image_shape: tuple = None,
@@ -236,6 +241,7 @@ class DataTensor:
 
 
 class DatasetTensor(Dataset):
+    @log_info(log_path="logs/log_datasets", log_enabled=True, print_enabled=True)
     def __init__(self, sqlite_path: str,
                  skeleton_dict: SkeletonDict = None, skeleton_dict_path: str = None,
                  table_name: str = None, key_column: str = None, value_column: str = None,
@@ -245,12 +251,14 @@ class DatasetTensor(Dataset):
         """
         Class to use torch.utils.data.Dataset and torch.utils.data.DataLoader (inherits from the former).
 
-        :param sqlite_path:
-        :param skeleton_dict:
-        :param skeleton_dict_path:
-        :param table_name:
-        :param key_column:
-        :param value_column:
+        :param sqlite_path:         path to SQLite3 database to extract information.
+        :param skeleton_dict:       SkeletonDict object defining how to arrange data.
+                                        (Optional, provide either skeleton_dict or skeleton_dict_path).
+        :param skeleton_dict_path:  path to a skeleton dictionary to create a SkeletonDict object.
+                                        (Optional, provide either skeleton_dict or skeleton_dict_path).
+        :param table_name:          name of the table in the SQLite3 database to get data.
+        :param key_column:          name of the column containing keys (IDs) in the table.
+        :param value_column:        name of the column containing values (data) in the table.
         :param start_timestamp:     the earliest timestamp from which a DataTensor is to be constructed.
                                         note that this may NOT be the first available data timestamp,
                                         depending on the value of num_intervals.

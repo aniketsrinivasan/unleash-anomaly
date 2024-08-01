@@ -3,13 +3,14 @@ import torch
 import pandas as pd
 import pickle
 import os
+from .decorators import log_info
 
 
 def _create_skeleton_dict(keys_list=None,
-                         from_csv=False,
-                         keys_csv_path=None, key_column_name=None,
-                         init_value=0,
-                         save_path: str=None, verbose=True) -> dict:
+                          from_csv=False,
+                          keys_csv_path=None, key_column_name=None,
+                          init_value=0,
+                          save_path: str = None, verbose=True) -> dict:
     """
     Creates a "skeleton dictionary" provided a .csv file with keys (and values). The dictionary is
     returned in the form {key1: init_value, key2: init_value, ...} where keys appear in the same order
@@ -157,6 +158,7 @@ def _populate_skeleton_dict(skeleton_dict: dict, populate_data, return_type: typ
 
 
 class SkeletonDict:
+    @log_info()
     def __init__(self, load_path=None, verbose=True):
         """
         Wrapper class for maintaining skeleton dictionaries. Used to load, create, populate and reset
@@ -179,6 +181,7 @@ class SkeletonDict:
         # Initializing populated skeleton dictionary to None:
         self.populated_skeleton_dict = None
 
+    @log_info()
     def load(self, load_path, override=False, verbose=None):
         """
         Loads skeleton dictionary (as a dict) into SkeletonDict.raw_skeleton_dict.
@@ -196,8 +199,9 @@ class SkeletonDict:
         self.raw_skeleton_dict = _load_skeleton_dict(load_path, verbose=verbose)
         return self.raw_skeleton_dict
 
+    @log_info(log_path="logs/log_skeleton_dicts", log_enabled=True, print_enabled=True)
     def create(self, keys_list=None, from_csv=False, keys_csv_path=None, key_column_name=None,
-               init_value=0, save_path: str=None, verbose=None) -> dict:
+               init_value=0, save_path: str=None, verbose=False) -> dict:
         """
         Defines a new skeleton dictionary (saved in save_path) and stored in self.raw_skeleton_dict.
 
