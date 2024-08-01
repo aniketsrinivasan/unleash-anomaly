@@ -1,6 +1,5 @@
 import torch
 from torch import nn
-from torch.nn import functional as F
 from ..blocks import ResidualBlock, AttentionBlock
 
 
@@ -64,9 +63,6 @@ class Decoder(nn.Sequential):
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         # x:    (batch_size, 4, height//4, width//4)
         # We want to undo everything done in the encoder, and pass through Sequential layers.
-
-        # Nullifying scaling applied at end of encoding:
-        x /= 0.18215
 
         # Passing through decoder:
         for module in self:
