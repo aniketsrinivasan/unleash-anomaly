@@ -1,4 +1,5 @@
 from utils import *
+from torch.utils.data import DataLoader
 
 
 # data_tensor = DataTensor(sqlite_path="0.topi",
@@ -26,10 +27,13 @@ dataset = DatasetTensor(sqlite_path="0.topi",
                         start_timestamp=1720809300,
                         end_timestamp=1720894800,
                         interval_size=300,
-                        num_intervals=2,
+                        num_intervals=3,
                         kwargs_get_tensor=kwargs_get_tensor)
-print(len(dataset))
-for i in range(10):
-    print(dataset[i]["data"].shape)
 
-print(dataset[10])
+dataloader = DataLoader(dataset, batch_size=10, shuffle=False)
+print(dataloader)
+for data in dataloader:
+    print(data)
+    print(data["data"].shape)
+    break
+
