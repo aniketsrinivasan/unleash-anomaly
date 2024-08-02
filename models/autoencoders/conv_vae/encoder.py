@@ -73,7 +73,7 @@ class Encoder(nn.Sequential):
         )
 
     # Forward method:
-    def forward(self, x: torch.Tensor, noise: torch.Tensor) -> torch.Tensor:
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
         Forward-pass through the Variational Autoencoder. Being a Variational Autoencoder, it learns how to
         represent images in a latent space, which is modeled by a multi-variate Gaussian distribution (this
@@ -97,26 +97,4 @@ class Encoder(nn.Sequential):
             # Passing through Sequential:
             x = module(x)
 
-            # Diving "x" into 2 Tensors along the provided dimension:
-            #   (batch_size, 4, height//4, width//4) => 2 x (batch_size, 2, height//4, width//4)
-            mean, log_variance = torch.chunk(input=x, chunks=2, dim=-1)
-
-            # We "clamp" the log_variance, so we essentially force it into an acceptable range:
-            log_variance = torch.clamp(log_variance, min=-30, max=20)
-            variance = log_variance.exp()
-
-            # Calculating standard deviation:
-            stddev = variance.sqrt()
-
-            # Transforming from N(0, 1) to N(mean, variance) such that:
-            #       N(0, 1) = Z ==> N(mean, variance) = X
-            #   is done by the following transformation:
-            #       X = mean + stddev * Z
-            #   and this is how we sample from our multivariate Gaussian (latent space), which also
-            #       explains why we needed the noise:
-            x = mean + stddev * noise
-
-            # We must scale the output by a constant (this is chosen from the original repository):
-            x *= 0.18215
-
-            return x
+        return x
