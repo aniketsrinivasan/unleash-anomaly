@@ -86,6 +86,7 @@ class DataTensor:
         within the DataTensor.dataframe attribute.
         """
         # Setting key and value column names:
+        table_name = table_name if table_name is not None else self.table_name
         key_column = key_column if key_column is not None else self.key_column
         value_column = value_column if value_column is not None else self.value_column
 
