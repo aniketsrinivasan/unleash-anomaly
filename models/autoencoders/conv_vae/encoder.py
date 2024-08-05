@@ -2,6 +2,7 @@ import torch
 from torch import nn
 from torch.nn import functional as F
 from ..blocks import AttentionBlock, ResidualBlock
+from utils import log_info
 
 
 class Encoder(nn.Sequential):
@@ -73,6 +74,7 @@ class Encoder(nn.Sequential):
         )
 
     # Forward method:
+    @log_info(display_args=False)
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         """
         Forward-pass through the Variational Autoencoder. Being a Variational Autoencoder, it learns how to
@@ -86,7 +88,8 @@ class Encoder(nn.Sequential):
         :return:        encoded image (as a torch.Tensor).
         """
         # x:        (batch_size, in_channels, height, width)
-        # noise:    (batch_size, out_channels, height//4, width//4)
+        # Conversion to float32 data type:
+        x = x.to(torch.float32)
 
         # Forward pass through Sequential layers:
         for module in self:
