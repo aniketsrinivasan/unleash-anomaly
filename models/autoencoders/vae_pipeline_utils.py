@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from typing import Callable
-from conv_vae import ConvVAE
+from .conv_vae import ConvVAE
 from utils import DatasetTensor, log_info
 
 
@@ -28,8 +28,8 @@ def __KL_loss_mse(reconstructed_x: torch.Tensor, x: torch.Tensor,
 
 
 @log_info(log_path="logs/log_model_training", log_enabled=True)
-def vae_train(model, data_loader: torch.DataLoader, optimizer=None, loss_function=None,
-              epochs=50, device="cpu", verbose=True):
+def vae_train(model, data_loader, optimizer=None, loss_function=None,
+              epochs=50, device="cpu", save_path=None, verbose=True):
     if verbose:
         print(f"Training model {type(model)} on provided dataset.")
     # Check validity of the VAE provided:
@@ -46,8 +46,9 @@ def vae_train(model, data_loader: torch.DataLoader, optimizer=None, loss_functio
     model.train()
     for epoch in range(epochs):
         total_loss = 0
-        for data in data_loader:
-            data = data["data"].to(device)
+        for idx, data in enumerate(data_loader):
+            # Moving to the device and converting data type(s):
+            data = data["data"].to(device, dtype=torch.float32)
             optimizer.zero_grad()
             reconstruction, mean, logvar = model(data)
             this_loss = loss_function(reconstructed_x=reconstruction, x=data,
@@ -56,4 +57,7 @@ def vae_train(model, data_loader: torch.DataLoader, optimizer=None, loss_functio
             optimizer.step()
             total_loss += this_loss.item()
         if verbose:
-            print(f"    Epoch {epoch} with loss: {total_loss / len(data_loader.dataset)}.")
+            print(f"    Epoch {epoch} with loss: {total_loss / (len(data_loader.dataset) * idx)}.")
+
+    if save_path is not None:
+        torch.save(model.state_dict(), save_path)
