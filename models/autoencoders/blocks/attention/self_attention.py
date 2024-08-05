@@ -54,7 +54,7 @@ class SelfAttention(nn.Module):
         #       (batch_size, seq_len, d_embed) ==> (batch_size, seq_len, proj_multi*d_embed)
         #   chunk:
         #       (batch_size, seq_len, proj_multi*d_embed) ==> proj_multi * (batch_size, seq_len, d_embed)
-        query, key, value = self.projection(x).chunk(self.__proj_multiplier, dim=-1)
+        query, key, value = self.projection(x).chunk(self.__projection_multiplier, dim=-1)
         # Each of query, key, value are of the shape:   (batch_size, seq_len, d_embed)
 
         # Split query, key and value according to number of heads:
