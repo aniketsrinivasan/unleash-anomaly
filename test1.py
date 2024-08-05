@@ -61,9 +61,9 @@ VAE = ConvVAE(in_channels=2,
 # optimizer = Adam(VAE.parameters(), lr=0.0005)
 # vae_train(model=VAE, data_loader=dataloader, optimizer=optimizer,
 #           loss_function=None, epochs=200, device="cpu", verbose=True,
-#           save_path="stubs/test_model_3.pt")
+#           save_path="stubs/sample_conv_vae.pt")
 
-VAE.load_state_dict(torch.load("stubs/test_model_3.pt"))
+VAE.load_state_dict(torch.load("stubs/sample_conv_vae.pt"))
 
 mean_real_loss = 0
 mean_anom_loss = 0
