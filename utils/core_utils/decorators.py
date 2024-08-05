@@ -2,14 +2,18 @@ import functools
 import time
 
 
-def log_info(log_path: str = None, log_enabled: bool = False, print_enabled: bool = True):
+def log_info(log_path: str = None, log_enabled: bool = False, print_enabled: bool = False,
+             display_args: bool = True):
     def log_info_decorator(function):
         @functools.wraps(function)
         def wrapper(*args, **kwargs):
             now = time.time()
-            string = (f"{now}: Called function {function.__qualname__} with following information:\n"
-                      f"   args:   {[str(arg) for arg in args]}\n"
-                      f"   kwargs: {[f'{str(kwarg)} = {str(kwargs[kwarg])}' for kwarg in kwargs]}")
+            if display_args:
+                string = (f"{now}: Called function {function.__qualname__} with following information:\n"
+                          f"   args:   {[str(arg) for arg in args]}\n"
+                          f"   kwargs: {[f'{str(kwarg)} = {str(kwargs[kwarg])}' for kwarg in kwargs]}")
+            else:
+                string = f"{now}: Called function {function.__qualname__}."
             # Log if log_enabled is True and log_path is provided:
             if (log_enabled is True) and (log_path is not None):
                 with open(log_path, "a") as log_file:
