@@ -16,7 +16,7 @@ import scipy.stats
 #       top-k changes frequently.
 
 # for i in range(50, 51):
-#     img_struct = ImageStruct(sqlite_path="0.topi", skeleton_dict_path="skeleton_dict_1",
+#     img_struct = ImageStruct(sqlite_path="0.topi", skeleton_dict_path="sample_skeleton_dict",
 #                              verbose=True)
 #     img_struct.get_data_from_sqlite(table_name="TOPS_80", key_column_name="Key", value_column_name="StatVal",
 #                                     timestamp=None)
@@ -42,7 +42,7 @@ def get_stacked_matrix(image_struct: ImageStruct, table_name: str,
     return stacked_matrix
 
 
-img_struct = ImageStruct(sqlite_path="0.topi", skeleton_dict_path="skeleton_dict_1",
+img_struct = ImageStruct(sqlite_path="0.topi", skeleton_dict_path="sample_skeleton_dict",
                          verbose=False)
 stacked_matrix = get_stacked_matrix(img_struct, table_name="TOPS_80", key_column_name="Key",
                                     value_column_name="StatVal", timestep_range=(1720809000, 1720894800),
@@ -71,7 +71,7 @@ prob = np.reshape(prob, (20, 20))
 plt.imshow(prob)
 plt.show()
 
-img_struct = ImageStruct(sqlite_path="0.topi", skeleton_dict_path="skeleton_dict_1",
+img_struct = ImageStruct(sqlite_path="0.topi", skeleton_dict_path="sample_skeleton_dict",
                          verbose=False)
 img_struct.get_data_from_sqlite(table_name="TOPS_80", key_column_name="Key",
                                 value_column_name="StatVal", timestamp=1720895100-300*19)
@@ -105,8 +105,8 @@ img_struct.get_image_from_array(image_size=(20, 20), array=this_sample, verbose=
 # df_kv = df1[["Key", "StatVal"]]
 #
 # # skeleton_dict = create_skeleton_dict(keys_list=keys, from_csv=False, init_value=1,
-# #                                      save_path="/Users/aniket/PycharmProjects/unleashAnomalies/skeleton_dict_1")
-# skeleton_dict = load_skeleton_dict("/Users/aniket/PycharmProjects/unleashAnomalies/skeleton_dict_1")
+# #                                      save_path="/Users/aniket/PycharmProjects/unleashAnomalies/sample_skeleton_dict")
+# skeleton_dict = load_skeleton_dict("/Users/aniket/PycharmProjects/unleashAnomalies/sample_skeleton_dict")
 # populated_array = populate_skeleton_dict(skeleton_dict=skeleton_dict,
 #                                          populate_data=df_kv, return_type=np.ndarray, use_other="Other",
 #                                          ignore_entries=("SYS:GROUP_TOTALS",))

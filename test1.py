@@ -16,7 +16,7 @@ def __KL_loss_mse(reconstructed_x: torch.Tensor, x: torch.Tensor,
 
 
 # data_tensor = DataTensor(sqlite_path="0.topi",
-#                          skeleton_dict_path="skeleton_dict_1",
+#                          skeleton_dict_path="sample_skeleton_dict",
 #                          table_name="TOPS_80",
 #                          key_column="Key",
 #                          value_column="StatVal",
@@ -41,7 +41,7 @@ kwargs_get_tensor = dict(
     transform=torch_transform
 )
 dataset = DatasetTensor(sqlite_path="0.topi",
-                        skeleton_dict_path="skeleton_dict_1",
+                        skeleton_dict_path="stubs/skeleton_dicts/sample_skeleton_dict",
                         table_name="TOPS_80",
                         key_column="Key",
                         value_column="StatVal",
@@ -63,7 +63,7 @@ VAE = ConvVAE(in_channels=2,
 #           loss_function=None, epochs=200, device="cpu", verbose=True,
 #           save_path="stubs/sample_conv_vae.pt")
 
-VAE.load_state_dict(torch.load("stubs/sample_conv_vae.pt"))
+VAE.load_state_dict(torch.load("stubs/saved_models/sample_conv_vae.pt"))
 
 mean_real_loss = 0
 mean_anom_loss = 0
