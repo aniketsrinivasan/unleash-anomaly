@@ -1,6 +1,7 @@
 import torch
 from torch import nn
 from ..blocks import ResidualBlock, AttentionBlock
+from utils import log_info
 
 
 class Decoder(nn.Sequential):
@@ -18,7 +19,7 @@ class Decoder(nn.Sequential):
             nn.Conv2d(in_channels=self.z_channels, out_channels=self.z_channels, kernel_size=1, padding=0),
 
             #   (batch_size, 4, height//4, width//4) => (batch_size, 16, height//4, width//4)
-            nn.Conv2d(in_channels=self.__z_channels, out_channels=16, kernel_size=3, padding=1),
+            nn.Conv2d(in_channels=self.z_channels, out_channels=16, kernel_size=3, padding=1),
 
             #   (batch_size, 16, height//4, width//4) => (batch_size, 16, height//4, width//4)
             ResidualBlock(in_channels=16, out_channels=16),
@@ -60,9 +61,11 @@ class Decoder(nn.Sequential):
         )
 
     # Forward method:
+    @log_info(display_args=False)
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         # x:    (batch_size, 4, height//4, width//4)
         # We want to undo everything done in the encoder, and pass through Sequential layers.
+        x = x.to(torch.float32)
 
         # Passing through decoder:
         for module in self:
