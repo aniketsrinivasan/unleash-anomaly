@@ -1,7 +1,8 @@
 import numpy as np
 import torch
 from torch.utils.data import Dataset
-from .core_utils import (get_sqlite_connection, sqlite_to_pandas, SkeletonDict,
+from .core_utils import (get_sqlite_connection, sqlite_to_pandas,
+                         SkeletonDict,
                          log_info)
 
 
@@ -75,6 +76,9 @@ class DataTensor:
         self.connection = get_sqlite_connection(sqlite_path, verbose=self.verbose)
         # Defining the DataFrame consisting of information for this ImageStruct:
         self.dataframe = None
+        # Automatically find the following information:
+        self.min_available_timestamp = None
+        self.max_available_timestamp = None
         # Defining torch.Tensor that will store the information of this DataTensor:
         self.tensor = None
 
@@ -98,6 +102,12 @@ class DataTensor:
         # Getting DataFrame from the SQLite3 connection:
         dataframe = sqlite_to_pandas(connection=self.connection, table_name=table_name,
                                      timestamp=timestamp, verbose=verbose)
+        # Setting minimum and maximum available timestamps when possible:
+        if update_self:
+            if self.min_available_timestamp is None:
+                self.min_available_timestamp = dataframe["BucketTS"].min()
+            if self.max_available_timestamp is None:
+                self.max_available_timestamp = dataframe["BucketTS"].max()
         # Extracting only key and value column (where keys are IDs and values are the ID-wise data):
         dataframe = dataframe[[key_column, value_column]]
 
@@ -282,6 +292,13 @@ class DatasetTensor(Dataset):
                                       key_column=key_column,
                                       value_column=value_column,
                                       verbose=False)
+        self.data_tensor.retrieve_dataframe(update_self=True)
+
+        if start_timestamp is None:
+            start_timestamp = self.data_tensor.min_available_timestamp
+        if end_timestamp is None:
+            end_timestamp = self.data_tensor.max_available_timestamp
+
         # Defining timestamp information and kwargs_get_tensor (defining how to extract data from
         #   the data source provided):
         self.start_timestamp = start_timestamp      # earliest timestamp to extract from
