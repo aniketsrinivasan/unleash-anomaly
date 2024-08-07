@@ -6,7 +6,7 @@ from torch.nn import functional as F
 class ResidualBlock(nn.Module):
     __num_groups = 8
 
-    def __init__(self, in_channels, out_channels):
+    def __init__(self, in_channels, out_channels, num_groups: int = None):
         """
         A block that applies convolutions, normalizations and residual connections to a given image.
         May be used to change the number of channels in the image for downsampling/upsampling.
@@ -20,11 +20,12 @@ class ResidualBlock(nn.Module):
         # We use two normalizations and convolutions. Notice that normalizations don't change
         # the shape of the tensor.
         #   First normalization and convolution:
-        self.groupnorm_1 = nn.GroupNorm(num_groups=self.__num_groups, num_channels=in_channels)
+        self.num_groups = num_groups if (num_groups is not None) else self.__num_groups
+        self.groupnorm_1 = nn.GroupNorm(num_groups=self.num_groups, num_channels=in_channels)
         self.conv_1 = nn.Conv2d(in_channels=in_channels, out_channels=out_channels,
                                 kernel_size=3, padding=1)
         #   Second normalization and convolution:
-        self.groupnorm_2 = nn.GroupNorm(num_groups=self.__num_groups, num_channels=out_channels)
+        self.groupnorm_2 = nn.GroupNorm(num_groups=self.num_groups, num_channels=out_channels)
         self.conv_2 = nn.Conv2d(in_channels=out_channels, out_channels=out_channels,
                                 kernel_size=3, padding=1)
 
