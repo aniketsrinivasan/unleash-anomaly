@@ -49,3 +49,25 @@ def sqlite_to_pandas(connection: sqlite3.Connection, table_name: str,
         print(dataframe, end="\n\n")
     return dataframe
 
+
+def sqlite_get_stacked_database(directory: str, table_name: str, save_path: str,
+                                sort_values: bool = False, sort_column: str = None,
+                                verbose=True):
+    # Initializing an empty dataframes list, iterating through all files in database:
+    dataframes = []
+    for file in os.listdir(directory):
+        this_connection = get_sqlite_connection(os.path.join(directory, file))
+        this_dataframe = sqlite_to_pandas(this_connection, table_name)
+        dataframes.append(this_dataframe)
+        this_connection.close()
+    stacked_dataframe = pd.concat(dataframes, ignore_index=True)
+
+    if sort_values and (sort_column is not None):
+        stacked_dataframe = stacked_dataframe.sort_values(by=sort_column, ascending=True)
+
+    # Creating new SQLite3 database:
+    new_connection = sqlite3.connect(save_path)
+    stacked_dataframe.to_sql(table_name, new_connection, if_exists="replace")
+    new_connection.close()
+
+    return True
