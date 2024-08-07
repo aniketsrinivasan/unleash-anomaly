@@ -8,17 +8,22 @@ class ConvVAE(nn.Module):
     __in_channels = 2
     __z_channels = 4
     __latent_dim = 10
+    __dropout = float(0)
     __image_shape = (20, 20)
 
     def __init__(self, in_channels: int = None, z_channels: int = None, latent_dim: int = None,
-                 image_shape: tuple = None):
+                 dropout: float = None, image_shape: tuple = None):
         super().__init__()
         # Defining channels:
         self.in_channels = in_channels if in_channels is not None else self.__in_channels
         self.z_channels = z_channels if z_channels is not None else self.__z_channels
         self.latent_dim = latent_dim if latent_dim is not None else self.__latent_dim
+        self.dropout = dropout if dropout is not None else self.__dropout
         self.image_shape = image_shape if image_shape is not None else self.__image_shape
         self.encoded_image_dim = (self.image_shape[0] // 4) * (self.image_shape[1] // 4)
+
+        # Defining dropout (used for the Linear layers):
+        self.dropout = nn.Dropout(0.2)
 
         # Defining encoder:
         self.encoder = Encoder(in_channels=self.in_channels, z_channels=self.z_channels)
@@ -55,7 +60,8 @@ class ConvVAE(nn.Module):
         # Getting mean and logvar by passing through corresponding dense layers:
         #   mean, logvar have the following shape:
         #       (batch_size, 4, latent_dim)
-        mean, logvar = self.layer_mean(x), self.layer_logvar(x)
+        dropout_x = self.dropout(x)
+        mean, logvar = self.layer_mean(dropout_x), self.layer_logvar(dropout_x)
         logvar = torch.clamp(logvar, min=-30, max=20)   # clamped for stability
 
         # Reparameterization (getting latent representation):
