@@ -37,16 +37,16 @@ def torch_transform(tensor):
 kwargs_get_tensor = dict(
     use_other="Other",
     ignore_entries=("SYS:GROUP_TOTALS", ),
-    image_shape=(20, 20),
+    image_shape=(28, 28),
     transform=torch_transform
 )
-dataset = DatasetTensor(sqlite_path="0.topi",
-                        skeleton_dict_path="stubs/skeleton_dicts/sample_skeleton_dict",
+dataset = DatasetTensor(sqlite_path="y_databases/5.topi",
+                        skeleton_dict_path="stubs/skeleton_dicts/skeleton_dict_784",
                         table_name="TOPS_80",
                         key_column="Key",
                         value_column="StatVal",
-                        start_timestamp=1720809300,
-                        end_timestamp=1720894800,
+                        start_timestamp=None,
+                        end_timestamp=None,
                         interval_size=300,
                         num_intervals=2,
                         kwargs_get_tensor=kwargs_get_tensor)
@@ -54,16 +54,16 @@ dataset = DatasetTensor(sqlite_path="0.topi",
 dataloader = DataLoader(dataset, batch_size=16, shuffle=True)
 
 VAE = ConvVAE(in_channels=2,
-              z_channels=16,
-              latent_dim=8,
-              image_shape=(20, 20))
+              z_channels=32,
+              latent_dim=16,
+              image_shape=(28, 28))
 
 # optimizer = Adam(VAE.parameters(), lr=0.0005)
 # vae_train(model=VAE, data_loader=dataloader, optimizer=optimizer,
 #           loss_function=None, epochs=200, device="cpu", verbose=True,
 #           save_path="stubs/sample_conv_vae.pt")
 
-VAE.load_state_dict(torch.load("stubs/saved_models/sample_conv_vae.pt"))
+VAE.load_state_dict(torch.load("stubs/saved_models/test_model_stacked_v5_784.pt"))
 
 mean_real_loss = 0
 mean_anom_loss = 0
@@ -71,11 +71,13 @@ anoms = []
 for i in range(0, len(dataset)):
     this_sample = dataset[i]["data"]
     this_sample = torch.unsqueeze(this_sample, 0)
-    out, mean, logvar = VAE(this_sample)
-    loss = __KL_loss_mse(reconstructed_x=out, x=this_sample, mean=mean, logvar=logvar)
-    print(i, loss)
-    mean_real_loss += loss[0]
-    if loss[0] >= 900:
+    with torch.no_grad():
+        out, mean, logvar = VAE(this_sample)
+    loss, prob = __KL_loss_mse(reconstructed_x=out, x=this_sample, mean=mean, logvar=logvar)
+    loss = loss / torch.mean(this_sample)
+
+    mean_real_loss += loss
+    if loss >= 900:
         anoms.append((i, loss))
 
     # this_sample[0][0][19][19] += 9.2
@@ -118,17 +120,19 @@ for anom in anoms:
 #     plt.show()
 
 # 214 is an interesting timestep
-for i in range(129, 133):
+for i in range(0, 100):
     this_sample = dataset[i]["data"]
     this_sample = torch.unsqueeze(this_sample, 0)
-    out, mean, logvar = VAE(this_sample)
-    loss = __KL_loss_mse(reconstructed_x=out, x=this_sample, mean=mean, logvar=logvar)
-    print(i, loss)
+    with torch.no_grad():
+        out, mean, logvar = VAE(this_sample)
+    loss, prob = __KL_loss_mse(reconstructed_x=out, x=this_sample, mean=mean, logvar=logvar)
+    loss = loss / torch.mean(this_sample)
+    print(i, loss, prob)
 
     out = out.detach().numpy()
     fig, axs = plt.subplots(2, 2)
-    axs[0, 0].imshow(this_sample[0][0], vmax=20, vmin=0)
-    axs[0, 1].imshow(this_sample[0][1], vmax=20, vmin=0)
-    axs[1, 0].imshow(out[0][0], vmax=20, vmin=0)
-    axs[1, 1].imshow(out[0][1], vmax=20, vmin=0)
+    axs[0, 0].imshow(this_sample[0][0], vmax=15, vmin=0)
+    axs[0, 1].imshow(this_sample[0][1], vmax=15, vmin=0)
+    axs[1, 0].imshow(out[0][0], vmax=15, vmin=0)
+    axs[1, 1].imshow(out[0][1], vmax=15, vmin=0)
     plt.show()
