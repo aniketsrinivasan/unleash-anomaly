@@ -172,8 +172,8 @@ class SkeletonDict:
 
         # Loading the skeleton dictionary if a path is provided:
         if self.load_path is None:
-            print(f"Skeleton dictionary does not have a defined load_path. "
-                  f"Use the SkeletonDict._load_skeleton_dict() method to load the dictionary.")
+            print(f"Note: Skeleton dictionary does not have a defined load_path. "
+                  f"Use the SkeletonDict.load() method to load the dictionary.")
             self.raw_skeleton_dict = None
         else:
             self.raw_skeleton_dict = _load_skeleton_dict(self.load_path, verbose=verbose)
